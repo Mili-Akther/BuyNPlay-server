@@ -1,7 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const app = express();
 
 const port = process.env.PORT || 5000;
@@ -49,6 +49,43 @@ async function run() {
       const result = await equipmentCollection.insertOne(newEquipment);
       res.send(result);
     });
+
+    app.put("/equipment/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const options = { upsert: true };
+      const updateEquipment = req.body;
+      const equipment = {
+        $set: {
+         name: updateEquipment.name,
+         image: updateEquipment.image,
+         category: updateEquipment.category,
+         price: updateEquipment.price,
+         rating: updateEquipment.rating,
+         processingTime: updateEquipment.processingTime,
+         stock: updateEquipment.stock,
+         customization: updateEquipment.customization,
+         description: updateEquipment.description,
+        },
+      };
+
+      const result = await equipmentCollection.updateOne(filter, equipment, options);
+      res.send(result);
+    });
+
+    app.delete('/equipment/:id', async(req,res)=>{
+      const id = req.params.id;
+      const query = {_id: new ObjectId(id)}
+      const result = await equipmentCollection.deleteOne(query);
+      res.send(result);
+    })
+
+    app.get('/equipment/:id', async(req, res)=>{
+      const id = req.params.id;
+      const query = {_id: new ObjectId(id)}
+      const result = await equipmentCollection.findOne(query);
+      res.send(result);
+    })
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
