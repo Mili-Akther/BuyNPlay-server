@@ -35,13 +35,12 @@ async function run() {
     const equipmentCollection = client
       .db("equipmentDB")
       .collection("equipment");
-    
-    
-    app.get("/equipment", async (req,res)=>{
-      const cursor = equipmentCollection.find();
-      const result = await cursor.toArray();
-      res.send(result)
-    });  
+
+    // app.get("/equipment", async (req, res) => {
+    //   const cursor = equipmentCollection.find();
+    //   const result = await cursor.toArray();
+    //   res.send(result);
+    // });
 
     app.post("/equipment", async (req, res) => {
       const newEquipment = req.body;
@@ -57,35 +56,82 @@ async function run() {
       const updateEquipment = req.body;
       const equipment = {
         $set: {
-         name: updateEquipment.name,
-         image: updateEquipment.image,
-         category: updateEquipment.category,
-         price: updateEquipment.price,
-         rating: updateEquipment.rating,
-         processingTime: updateEquipment.processingTime,
-         stock: updateEquipment.stock,
-         customization: updateEquipment.customization,
-         description: updateEquipment.description,
+          name: updateEquipment.name,
+          image: updateEquipment.image,
+          category: updateEquipment.category,
+          price: updateEquipment.price,
+          rating: updateEquipment.rating,
+          processingTime: updateEquipment.processingTime,
+          stock: updateEquipment.stock,
+          customization: updateEquipment.customization,
+          description: updateEquipment.description,
         },
       };
 
-      const result = await equipmentCollection.updateOne(filter, equipment, options);
+      const result = await equipmentCollection.updateOne(
+        filter,
+        equipment,
+        options
+      );
       res.send(result);
     });
 
-    app.delete('/equipment/:id', async(req,res)=>{
+    app.delete("/equipment/:id", async (req, res) => {
       const id = req.params.id;
-      const query = {_id: new ObjectId(id)}
+      const query = { _id: new ObjectId(id) };
       const result = await equipmentCollection.deleteOne(query);
       res.send(result);
-    })
+    });
 
-    app.get('/equipment/:id', async(req, res)=>{
+    app.get("/equipment/:id", async (req, res) => {
       const id = req.params.id;
-      const query = {_id: new ObjectId(id)}
+      const query = { _id: new ObjectId(id) };
       const result = await equipmentCollection.findOne(query);
       res.send(result);
-    })
+    });
+
+    // limit-6 data 
+    app.get("/equipment", async (req, res) => {
+      try {
+        const category = req.query.category;
+        // const query = category ? { category } : {};
+        const query = category
+          ? { category: { $regex: category, $options: "i" } }
+          : {};
+
+
+        const result = await equipmentCollection.find(query).limit(6).toArray();
+        res.send(result);
+      } catch (error) {
+        console.error("Error fetching equipment:", error);
+        res.status(500).send("Error fetching equipment");
+      }
+    });
+
+
+    
+    app.get("/allequipment", async (req, res) => {
+      try {
+        const result = await equipmentCollection.find({}).toArray();
+        res.send(result);
+      } catch (error) {
+        console.error("Error fetching all equipment:", error);
+        res.status(500).send("Error fetching all equipment");
+      }
+    });
+
+
+    app.get("/equipment", async (req, res) => {
+      try {
+        const result = await equipmentCollection.find({}).toArray();
+        res.send(result);
+      } catch (error) {
+        console.error("Error fetching equipment:", error);
+        res.status(500).send("Error fetching equipment");
+      }
+    });
+    
+    
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
